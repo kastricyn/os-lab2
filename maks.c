@@ -5,6 +5,10 @@
 #include <linux/uaccess.h> 
 #include <linux/version.h> 
 
+#include <string.h>
+#include <stdint.h>
+
+
 #include "maks.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0) 
@@ -42,6 +46,26 @@ static ssize_t procfile_read(struct file * filePointer, char __user * buffer,
     return ret; 
 } 
  
+char [] load_data(uint_32 pid){
+    string ans = "";
+    struct task_struct* task;
+      task = get_pid_task(find_get_pid(thread_params.pid), PIDTYPE_PID);
+       if (task == NULL) {
+                pr_err("Failed to read thread with PID %d\n", thread_params.pid);
+                return ERROR;
+            }
+    
+    signal_struct sig= task->signal;
+    ans += sig->;
+    ans += ;
+    ans += ;
+    ans += ;
+    ans += ;
+    ans += "\n";
+    ans += "";
+
+}
+
  /* Эта функция вызывается при записи пользователем в файл /proc. */ 
 static ssize_t procfile_write(struct file *file, const char __user *buff, 
                               size_t len, loff_t *off) 
@@ -74,7 +98,7 @@ static const struct file_operations proc_file_fops = {
 static int __init maks_init( void ) {
  	pr_info( "Maks module init" );
 
-    our_proc_file = proc_create(PROCFS_NAME, 0666, NULL, &proc_file_fops); 
+    our_proc_file = proc_create(PROCFS_NAME, 666, NULL, &proc_file_fops); 
     if (NULL == our_proc_file) { 
         proc_remove(our_proc_file); 
         pr_alert("Error:Could not initialize /proc/%s\n", PROCFS_NAME); 
