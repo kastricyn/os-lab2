@@ -31,8 +31,10 @@ static unsigned long procfs_buffer_size = 0;
 static ssize_t procfile_read(struct file * filePointer, char __user * buffer, 
                              size_t buffer_length, loff_t * offset) 
 { 
-    char s[13] = "HelloWorld!\n"; 
-    int len = sizeof(s); 
+    uint_32 pid;
+    sscanf(myarray, "%d", &pid);
+    maks_signal_struct* m_signal_struct = get_data_for_user_read(pid); 
+    size_t len = sizeof(struct maks_signal_struct); 
     ssize_t ret = len; 
  
     if (*offset >= len || copy_to_user(buffer, s, len)) { 
@@ -46,23 +48,34 @@ static ssize_t procfile_read(struct file * filePointer, char __user * buffer,
     return ret; 
 } 
  
-char [] load_data(uint_32 pid){
+void* get_data_for_user_read(uint_32 pid){
     string ans = "";
     struct task_struct* task;
-      task = get_pid_task(find_get_pid(thread_params.pid), PIDTYPE_PID);
-       if (task == NULL) {
-                pr_err("Failed to read thread with PID %d\n", thread_params.pid);
-                return ERROR;
-            }
+    task = get_pid_task(find_get_pid(thread_params.pid), PIDTYPE_PID);
+    if (task == NULL) {
+        pr_err("Failed to read thread with PID %d\n", thread_params.pid);
+        return ERROR;
+    }
     
     signal_struct sig= task->signal;
-    ans += sig->;
-    ans += ;
-    ans += ;
-    ans += ;
-    ans += ;
-    ans += "\n";
-    ans += "";
+    maks_signal_struct m_signal_struct;
+
+    m_signal_struct.sigcnt = sig.sigcnt.refs.counter;
+    m_signal_struct.nr_threads = sig.nr_threads;
+    m_signal_struct.group_exit_code = sig.group_exit_code;
+    m_signal_struct.notify_count = sig.notify_count;
+    m_signal_struct.group_stop_count = sig.group_stop_count;
+    m_signal_struct.flags = sig.flags;
+    m_signal_struct.leader = sig.leader;
+    m_signal_struct.utime = sig.utime;
+    m_signal_struct.stime = sig.stime;
+    m_signal_struct.cutime = sig.cutime;
+    m_signal_struct.cstime = sig.cstime;
+    m_signal_struct.gtime = sig.gtime;
+    m_signal_struct.cgtime = sig.cgtime;
+    m_signal_struct.sum_sched_runtime = sig.sum_sched_runtime;
+
+    return &m_signal_struct;
 
 }
 
