@@ -28,7 +28,47 @@ static char procfs_buffer[PROCFS_MAX_SIZE];
 /* Размер буфера. */ 
 static unsigned long procfs_buffer_size = 0; 
  
-inline void* get_data_for_user_read(u32 pid){
+// inline void* get_data_for_user_read(u32 pid){
+//     struct task_struct* task;
+//     task = get_pid_task(find_get_pid(pid), PIDTYPE_PID);
+//     if (task == NULL) {
+//         pr_err("Failed to read thread with PID %d\n", pid);
+//         return ERROR;
+//     }
+    
+//     struct signal_struct * sig = task->signal;
+//     struct maks_signal_struct m_signal_struct;
+
+//     m_signal_struct.sigcnt = sig->sigcnt.refs.counter;
+//     m_signal_struct.nr_threads = sig->nr_threads;
+//     m_signal_struct.group_exit_code = sig->group_exit_code;
+//     m_signal_struct.notify_count = sig->notify_count;
+//     m_signal_struct.group_stop_count = sig->group_stop_count;
+//     m_signal_struct.flags = sig->flags;
+//     m_signal_struct.leader = sig->leader;
+//     m_signal_struct.utime = sig->utime;
+//     m_signal_struct.stime = sig->stime;
+//     m_signal_struct.cutime = sig->cutime;
+//     m_signal_struct.cstime = sig->cstime;
+//     m_signal_struct.gtime = sig->gtime;
+//     m_signal_struct.cgtime = sig->cgtime;
+//     m_signal_struct.sum_sched_runtime = sig->sum_sched_runtime;
+    
+//     pr_info("m_signal_struct.utime: %d\n", m_signal_struct.utime);
+//     pr_info("m_signal_struct.stime: %d\n", m_signal_struct.stime);
+
+//     return &m_signal_struct;
+
+// }
+
+/* Эта функция вызывается при считывании пользователем из файла /proc. */ 
+static ssize_t procfile_read(struct file * filePointer, char __user * buffer, 
+                             size_t buffer_length, loff_t * offset) 
+{ 
+    u32 pid;
+    sscanf(procfs_buffer, "%d", &pid);
+    pr_info("PID was got: %d\n", pid);
+    
     struct task_struct* task;
     task = get_pid_task(find_get_pid(pid), PIDTYPE_PID);
     if (task == NULL) {
@@ -53,28 +93,13 @@ inline void* get_data_for_user_read(u32 pid){
     m_signal_struct.gtime = sig->gtime;
     m_signal_struct.cgtime = sig->cgtime;
     m_signal_struct.sum_sched_runtime = sig->sum_sched_runtime;
-    
-    pr_info("m_signal_struct.utime: %d\n", m_signal_struct.utime);
-    pr_info("m_signal_struct.stime: %d\n", m_signal_struct.stime);
 
-    return &m_signal_struct;
-
-}
-
-/* Эта функция вызывается при считывании пользователем из файла /proc. */ 
-static ssize_t procfile_read(struct file * filePointer, char __user * buffer, 
-                             size_t buffer_length, loff_t * offset) 
-{ 
-    u32 pid;
-    sscanf(procfs_buffer, "%d", &pid);
-    pr_info("PID was got: %d\n", pid);
-    struct maks_signal_struct* m_signal_struct = (struct maks_signal_struct*) get_data_for_user_read(pid); 
     int len = sizeof(struct maks_signal_struct); 
     ssize_t ret = len; 
-    pr_info("m_signal_struct.cutime: %d\n", m_signal_struct->cutime);
-    pr_info("m_signal_struct.cstime: %d\n", m_signal_struct->cstime);
+    pr_info("m_signal_struct.cutime: %d\n", m_signal_struct.cutime);
+    pr_info("m_signal_struct.cstime: %d\n", m_signal_struct.cstime);
     
-    if (*offset >= len || copy_to_user(buffer, m_signal_struct, len)) { 
+    if (*offset >= len || copy_to_user(buffer, &m_signal_struct, len)) { 
         pr_info("copy_to_user failed\n"); 
         ret = 0; 
     } else { 
