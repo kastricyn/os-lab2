@@ -1,15 +1,15 @@
-#include <stdint.h>
-#include <linux/refcount.h>
+#include <linux/types.h>
+
 
 #define TASK_CPUTIME
 #define SIGNAL_STRUCT
 
 struct input_params {
-    uint_32 pid;
-}
+    u32 pid;
+};
 
 struct maks_signal_struct{
-    refcount_t		sigcnt;
+    int		sigcnt;
     int			nr_threads;
     /* thread group exit support */
 	int			group_exit_code;
@@ -40,7 +40,7 @@ struct maks_signal_struct{
 	 * other than jiffies.)
 	 */
 	unsigned long long sum_sched_runtime;
-}
+};
 
 /**
  * struct task_cputime - collected CPU time counts
@@ -53,7 +53,7 @@ struct maks_signal_struct{
  * these counts together and treat all three of them in parallel.
  */
 struct maks_task_cputime{
-    uint_64				stime;
-	uint_64				utime;
+    u64				stime;
+	u64				utime;
 	unsigned long long		sum_exec_runtime;
-}
+};
