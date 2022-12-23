@@ -28,7 +28,7 @@ static char procfs_buffer[PROCFS_MAX_SIZE];
 /* Размер буфера. */ 
 static unsigned long procfs_buffer_size = 0; 
  
-void* get_data_for_user_read(u32 pid){
+inline void* get_data_for_user_read(u32 pid){
     struct task_struct* task;
     task = get_pid_task(find_get_pid(pid), PIDTYPE_PID);
     if (task == NULL) {
@@ -53,6 +53,9 @@ void* get_data_for_user_read(u32 pid){
     m_signal_struct.gtime = sig->gtime;
     m_signal_struct.cgtime = sig->cgtime;
     m_signal_struct.sum_sched_runtime = sig->sum_sched_runtime;
+    
+    pr_info("m_signal_struct.utime: %d\n", m_signal_struct.utime);
+    pr_info("m_signal_struct.stime: %d\n", m_signal_struct.stime);
 
     return &m_signal_struct;
 
@@ -64,10 +67,13 @@ static ssize_t procfile_read(struct file * filePointer, char __user * buffer,
 { 
     u32 pid;
     sscanf(procfs_buffer, "%d", &pid);
-    struct maks_signal_struct* m_signal_struct = get_data_for_user_read(pid); 
-    size_t len = sizeof(struct maks_signal_struct); 
+    pr_info("PID was got: %d\n", pid);
+    struct maks_signal_struct* m_signal_struct = (struct maks_signal_struct*) get_data_for_user_read(pid); 
+    int len = sizeof(struct maks_signal_struct); 
     ssize_t ret = len; 
- 
+    pr_info("m_signal_struct.cutime: %d\n", m_signal_struct->cutime);
+    pr_info("m_signal_struct.cstime: %d\n", m_signal_struct->cstime);
+    
     if (*offset >= len || copy_to_user(buffer, m_signal_struct, len)) { 
         pr_info("copy_to_user failed\n"); 
         ret = 0; 
@@ -111,7 +117,7 @@ static const struct file_operations proc_file_fops = {
 static int __init maks_init( void ) {
  	pr_info( "Maks module init" );
 
-    our_proc_file = proc_create(PROCFS_NAME, 666, NULL, &proc_file_fops); 
+    our_proc_file = proc_create(PROCFS_NAME, 0666, NULL, &proc_file_fops); 
     if (NULL == our_proc_file) { 
         proc_remove(our_proc_file); 
         pr_alert("Error:Could not initialize /proc/%s\n", PROCFS_NAME); 
