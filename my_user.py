@@ -6,9 +6,11 @@ import sys
 """
 if __name__ =='__main__':
     with open("/proc/maks_module", 'w') as file:
-        print(file.write('2166'))
-    with open("/proc/maks_module", 'r+') as file:
-        print(file.read())
+        print(file.write('5850'))
+    with open("/proc/maks_module", 'rb') as file:
+        print(int(file.read(4)))
+        print(file.read(4))
+        print(file.read(4))
         
     # print("dfs")
     # print(sys.argv)  
