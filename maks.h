@@ -1,14 +1,15 @@
-#include <linux/types.h>
+#ifndef maks_h
+#define maks_h
 
+#ifndef maks_kernel_build
+#include<stdint.h>
 
-#define TASK_CPUTIME
-#define SIGNAL_STRUCT
+typedef uint32_t u32;
+typedef uint64_t u64;
+#endif //maks_kernel_build
 
-struct input_params {
-    u32 pid;
-};
-
-struct maks_signal_struct{
+struct maks_transfer_struct{
+//	int nop; //only for simple serialization
     int		sigcnt;
     int			nr_threads;
     /* thread group exit support */
@@ -40,6 +41,9 @@ struct maks_signal_struct{
 	 * other than jiffies.)
 	 */
 	unsigned long long sum_sched_runtime;
+
+	u64 task_cpu_time_stime;
+	u64 task_cpu_time_utime;
 };
 
 /**
@@ -57,3 +61,5 @@ struct maks_task_cputime{
 	u64				utime;
 	unsigned long long		sum_exec_runtime;
 };
+
+#endif // maks_h

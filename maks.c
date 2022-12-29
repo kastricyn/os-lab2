@@ -8,6 +8,7 @@
 #include <linux/sched/signal.h> 
 
 
+#define maks_kernel_build
 #include "maks.h"
 
 #define ERROR 500
@@ -32,7 +33,7 @@ static unsigned long procfs_buffer_size = 0;
 static ssize_t procfile_read(struct file * filePointer, char __user * buffer, 
                              size_t buffer_length, loff_t * offset) 
 { 
-    u32 pid;
+    int pid;
     sscanf(procfs_buffer, "%d", &pid);
     pr_info("PID was got: %d\n", pid);
     
@@ -44,29 +45,31 @@ static ssize_t procfile_read(struct file * filePointer, char __user * buffer,
     }
     
     struct signal_struct * sig = task->signal;
-    struct maks_signal_struct m_signal_struct;
+    struct maks_transfer_struct m_transfer_struct;
 
-    m_signal_struct.sigcnt = sig->sigcnt.refs.counter;
-    m_signal_struct.nr_threads = sig->nr_threads;
-    m_signal_struct.group_exit_code = sig->group_exit_code;
-    m_signal_struct.notify_count = sig->notify_count;
-    m_signal_struct.group_stop_count = sig->group_stop_count;
-    m_signal_struct.flags = sig->flags;
-    m_signal_struct.leader = sig->leader;
-    m_signal_struct.utime = sig->utime;
-    m_signal_struct.stime = sig->stime;
-    m_signal_struct.cutime = sig->cutime;
-    m_signal_struct.cstime = sig->cstime;
-    m_signal_struct.gtime = sig->gtime;
-    m_signal_struct.cgtime = sig->cgtime;
-    m_signal_struct.sum_sched_runtime = sig->sum_sched_runtime;
 
-    int len = sizeof(struct maks_signal_struct); 
+
+    m_transfer_struct.sigcnt = sig->sigcnt.refs.counter;
+    m_transfer_struct.nr_threads = sig->nr_threads;
+    m_transfer_struct.group_exit_code = sig->group_exit_code;
+    m_transfer_struct.notify_count = sig->notify_count;
+    m_transfer_struct.group_stop_count = sig->group_stop_count;
+    m_transfer_struct.flags = sig->flags;
+    m_transfer_struct.leader = sig->leader;
+    m_transfer_struct.utime = sig->utime;
+    m_transfer_struct.stime = sig->stime;
+    m_transfer_struct.cutime = sig->cutime;
+    m_transfer_struct.cstime = sig->cstime;
+    m_transfer_struct.gtime = sig->gtime;
+    m_transfer_struct.cgtime = sig->cgtime;
+    m_transfer_struct.sum_sched_runtime = sig->sum_sched_runtime;
+    m_transfer_struct.task_cpu_time_utime = task->utime;
+    m_transfer_struct.task_cpu_time_stime = task->stime;
+
+    int len = sizeof(struct maks_transfer_struct); 
     ssize_t ret = len; 
-    pr_info("m_signal_struct.cutime: %d\n", m_signal_struct.cutime);
-    pr_info("m_signal_struct.cstime: %d\n", m_signal_struct.cstime);
-    
-    if (*offset >= len || copy_to_user(buffer, &m_signal_struct, len)) { 
+
+    if (*offset >= len || copy_to_user(buffer, &m_transfer_struct, len)) { 
         pr_info("copy_to_user failed\n"); 
         ret = 0; 
     } else { 
